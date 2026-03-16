@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "skills": {
+    "devcontainer-setup": {
+      "source": "trailofbits/skills",
+      "sourceType": "github",
+      "computedHash": "fa7690d43a2b1937527d3448bd943581d4802df92aa79350c6758875a3b38aee"
+    }
+  }
+}

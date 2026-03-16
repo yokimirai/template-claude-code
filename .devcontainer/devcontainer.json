@@ -1,0 +1,85 @@
+// Claude Code Dev Container 設定
+// 詳細: https://containers.dev/implementors/json_reference/
+{
+  "$schema": "https://raw.githubusercontent.com/devcontainers/spec/main/schemas/devContainer.schema.json",
+  "name": "Claude Code Dev Container",
+
+  // コンテナのビルド設定
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": ".."
+  },
+
+  // コンテナ内の実行ユーザー
+  "remoteUser": "vscode",
+
+  // ホストとコンテナの UID 不一致を自動修正
+  "updateRemoteUserUID": true,
+
+  // PID 1 に init プロセスを使用（ゾンビプロセス回避）
+  "init": true,
+
+  // Dev Container Features（Git, GitHub CLI を追加）
+  // 利用可能な Features: https://containers.dev/features
+  "features": {
+    "ghcr.io/devcontainers/features/git:1": {},
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+    // プロジェクトに応じて追加:
+    // "ghcr.io/devcontainers/features/google-cloud-cli:1": {},
+    // "ghcr.io/devcontainers/features/python:1": {},
+    // "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+  },
+
+  // ボリュームマウント: コンテナ再作成後も設定を永続化
+  "mounts": [
+    "source=claude-config,target=/home/vscode/.claude,type=volume",
+    "source=claude-cli-history,target=/home/vscode/.bash_history_dir,type=volume",
+    "source=claude-gh-config,target=/home/vscode/.config/gh,type=volume"
+  ],
+
+  // ポートフォワーディング（開発サーバーのポートを追加）
+  // 例: "forwardPorts": [3000, 8080]
+  "forwardPorts": [],
+
+  // 環境変数（コンテナ全体に適用）
+  // 例: "containerEnv": { "NODE_ENV": "development" }
+  "containerEnv": {},
+
+  // コンテナ作成後に実行されるセットアップスクリプト
+  "postCreateCommand": "bash .devcontainer/setup.sh",
+
+  // VS Code のカスタマイズ
+  "customizations": {
+    "vscode": {
+      // 拡張機能
+      "extensions": [
+        "Anthropic.claude-code",
+        "github.vscode-github-actions",
+        "GitHub.vscode-pull-request-github",
+        "esbenp.prettier-vscode"
+        // プロジェクトに応じて追加:
+        // "dbaeumer.vscode-eslint",
+        // "bradlc.vscode-tailwindcss",
+        // "vue.volar"
+      ],
+      // エディタ設定
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.codeActionsOnSave": {
+          "source.fixAll.eslint": "explicit"
+        },
+        "files.trimTrailingWhitespace": true,
+        "files.insertFinalNewline": true,
+        "files.trimFinalNewlines": true,
+        "files.watcherExclude": {
+          "**/node_modules/**": true,
+          "**/.git/**": true,
+          "**/dist/**": true,
+          "**/build/**": true
+        }
+      }
+    }
+  }
+}
