@@ -1,0 +1,55 @@
+# Claude Code による自動コードレビュー
+# PR が作成・更新されると自動的にレビューを実行します
+#
+# セットアップ:
+#   claude.yml と同じシークレットを使用します
+#
+# 詳細: https://github.com/anthropics/claude-code-action/blob/main/docs/usage.md
+
+name: Claude Code Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, ready_for_review, reopened]
+    # 特定のファイルのみレビュー対象にする場合:
+    # paths:
+    #   - "src/**/*.ts"
+    #   - "src/**/*.tsx"
+
+# 同じ PR への連続プッシュ時、前回のレビューをキャンセルして最新のみ実行
+concurrency:
+  group: claude-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  claude-review:
+    # ドラフト PR はスキップ
+    if: github.event.pull_request.draft == false
+
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install agent skills
+        run: npx -y skills experimental_install
+
+      - name: Run Claude Code Review
+        uses: anthropics/claude-code-action@v1
+        with:
+          # 認証: いずれか一方を設定してください
+          # API キーの場合（チーム利用向け）:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          # OAuth トークンの場合（個人利用向け / 上の行をコメントアウトして有効化）:
+          # claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}

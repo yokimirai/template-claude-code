@@ -103,18 +103,56 @@ Node.js の標準的なパターンが設定済みです。
 docker volume rm claude-config
 ```
 
+## GitHub Actions 連携
+
+テンプレートには Claude Code の GitHub Actions ワークフローが含まれています。
+
+| ワークフロー | ファイル | 内容 |
+|-------------|---------|------|
+| Claude Code | `.github/workflows/claude.yml` | Issue / PR で `@claude` とメンションすると応答 |
+| Claude Code Review | `.github/workflows/claude-code-review.yml` | PR 作成時に自動コードレビュー（※） |
+
+※ GitHub Copilot などで既にコードレビューを行っている場合は、このワークフローは不要です。削除してください。
+
+### セットアップ手順
+
+1. **シークレットの登録**
+
+   リポジトリの Settings > Secrets and variables > Actions で以下のいずれかを追加：
+
+   - `ANTHROPIC_API_KEY` — API キー（チーム利用向け / 従量課金）
+   - `CLAUDE_CODE_OAUTH_TOKEN` — OAuth トークン（個人利用向け / Pro・Max サブスクリプション、`claude setup-token` で取得）
+
+2. **Actions の権限設定**
+
+   リポジトリの Settings > Actions > General で以下を確認：
+
+   - 「Actions permissions」が「Allow all actions and reusable workflows」になっていること
+   - 「Workflow permissions」が「Read and write permissions」になっていること
+
+3. **使い方**
+
+   - Issue や PR のコメントで `@claude` とメンション → Claude が応答
+   - Issue に `claude` ラベルを付与 → Claude が対応開始
+   - PR を作成 → 自動的にコードレビューを実行
+
+詳細: [claude-code-action セットアップガイド](https://github.com/anthropics/claude-code-action/blob/main/docs/setup.md)
+
 ## プロジェクト構成
 
 ```
 .
 ├── .devcontainer/
-│   ├── Dockerfile          # コンテナイメージ定義
-│   ├── devcontainer.json   # Dev Container 設定
-│   └── setup.sh            # 初回セットアップスクリプト
-├── .gitignore              # Git 除外パターン
-├── CLAUDE.md               # Claude Code コンテキスト
-├── skills-lock.json        # Claude Code スキル管理
-└── README.md               # このファイル
+│   ├── Dockerfile              # コンテナイメージ定義
+│   ├── devcontainer.json       # Dev Container 設定
+│   └── setup.sh                # 初回セットアップスクリプト
+├── .github/workflows/
+│   ├── claude.yml              # Claude Code Actions（@claude メンション応答）
+│   └── claude-code-review.yml  # Claude Code 自動コードレビュー
+├── .gitignore                  # Git 除外パターン
+├── CLAUDE.md                   # Claude Code コンテキスト
+├── skills-lock.json            # Claude Code スキル管理
+└── README.md                   # このファイル
 ```
 
 ## ご利用上の注意

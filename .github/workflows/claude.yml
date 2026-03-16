@@ -1,0 +1,66 @@
+# Claude Code GitHub Actions 連携
+# Issue や PR で @claude とメンションすると Claude が応答します
+#
+# セットアップ:
+#   リポジトリの Settings > Secrets and variables > Actions に以下のいずれかを追加
+#   - ANTHROPIC_API_KEY: API キー（チーム利用向け / 従量課金 / sk-ant- で始まる）
+#   - CLAUDE_CODE_OAUTH_TOKEN: OAuth トークン（個人利用向け / Pro・Max サブスクリプション）
+#     ローカルで `claude setup-token` を実行して取得
+#
+# 詳細: https://github.com/anthropics/claude-code-action/blob/main/docs/setup.md
+#
+# 使い方:
+#   - Issue / PR のコメントで @claude とメンション
+#   - Issue に "claude" ラベルを付与
+#   - Issue の担当者に "claude" を設定
+
+name: Claude Code
+
+on:
+  issue_comment:
+    types: [created]
+  pull_request_review_comment:
+    types: [created]
+  issues:
+    types: [opened, assigned, labeled]
+  pull_request_review:
+    types: [submitted]
+
+jobs:
+  claude:
+    if: |
+      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude')) ||
+      (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@claude')) ||
+      (github.event_name == 'pull_request_review' && contains(github.event.review.body, '@claude')) ||
+      (github.event_name == 'issues' && (contains(github.event.issue.body, '@claude') || contains(github.event.issue.title, '@claude'))) ||
+      (github.event_name == 'issues' && github.event.action == 'labeled' && github.event.label.name == 'claude') ||
+      (github.event_name == 'issues' && github.event.action == 'assigned')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install agent skills
+        run: npx -y skills experimental_install
+
+      - name: Run Claude Code
+        uses: anthropics/claude-code-action@v1
+        with:
+          # 認証: いずれか一方を設定してください
+          # API キーの場合:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          # OAuth トークンの場合（上の行をコメントアウトして下を有効化）:
+          # claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          assignee_trigger: "claude"
+          label_trigger: "claude"
